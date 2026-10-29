@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RECRUITMENT.OS — 数据分析</title>
+    <link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <script src="/static/js/echarts.min.js"></script>
+    <style>
+        /* ===== Design Tokens — ahmdyassr-com（终端极客风） ===== */
+        :root {
+            --bg: #141414;
+            --bg-raised: #242424;
+            --bg-deep: #0a0a0a;
+            --line: #2b2b2b;
+            --line-soft: #3d3d3d;
+            --text: #b0b0b0;
+            --text-strong: #fafafa;
+            --text-muted: #7a7a7a;
+            --accent: #ffa800;
+            --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+            --ease: cubic-bezier(.33, 1, .68, 1);
+        }
+        ::selection { background: var(--accent); color: #141414; }
+
+        html, body { background: var(--bg) !important; }
+        body, h1, h2, h3, h4, h5, h6, p, a, span, div, button, li {
+            font-family: var(--mono) !important;
+            letter-spacing: .02em;
+        }
+        body { color: var(--text); font-size: 13px; }
+
+        /* ===== 侧边栏深色化 ===== */
+        .sidebar {
+            background: var(--bg-deep) !important;
+            border-right: 1px solid var(--line);
+        }
+        .sidebar .nav-item .nav-link { color: var(--text) !important; text-transform: uppercase; font-size: 12px; }
+        .sidebar .nav-item .nav-link:hover, .sidebar .nav-item.active .nav-link { color: var(--accent) !important; }
+        .sidebar .nav-item .nav-link i { color: var(--text-muted) !important; }
+        .sidebar .nav-item.active .nav-link i { color: var(--accent) !important; }
+        .sidebar .sidebar-brand { color: var(--text-strong) !important; text-transform: uppercase; }
+        .sidebar .sidebar-heading { color: var(--text-muted) !important; text-transform: uppercase; font-size: 10px; }
+        .sidebar hr.sidebar-divider { border-top: 1px solid var(--line) !important; }
+        .sidebar .collapse-inner { background: var(--bg-raised) !important; }
+        .sidebar .collapse-item { color: var(--text) !important; }
+        .sidebar .collapse-item:hover { color: var(--accent) !important; background: var(--bg) !important; }
+        #sidebarToggle, #sidebarToggleTop { background: var(--bg-raised) !important; color: var(--text) !important; }
+
+        /* ===== 顶栏 ===== */
+        .topbar {
+            background: var(--bg) !important;
+            border-bottom: 1px solid var(--line);
+            box-shadow: none !important;
+        }
+
+        /* ===== 页面骨架 ===== */
+        #content-wrapper, #content { background: var(--bg) !important; }
+        .container-fluid { padding: 24px; }
+
+        .page-head {
+            border-bottom: 1px solid var(--line);
+            padding: 4px 0 16px;
+            margin-bottom: 24px;
+        }
+        .page-head .crumb { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+        .page-head h1 {
+            color: var(--text-strong);
+            font-size: 20px; line-height: 1.2;
+            text-transform: uppercase; font-weight: 700;
+            margin: 6px 0 0;
+        }
+        .page-head h1 .accent { color: var(--accent); }
+        .page-head .meta { color: var(--text-muted); font-size: 11px; margin-top: 8px; text-transform: uppercase; }
+
+        /* ===== 卡片：扁平、细边框、零阴影、零圆角 ===== */
+        .tcard {
+            background: var(--bg-raised);
+            border: 1px solid var(--line);
+            border-radius: 0;
+            margin-bottom: 24px;
+        }
+        .tcard-head {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--line);
+            padding: 10px 14px;
+        }
+        .tcard-head .t { color: var(--text-strong); font-size: 12px; text-transform: uppercase; font-weight: 700; }
+        .tcard-head .lbl {
+            color: var(--accent); font-size: 10px; text-transform: uppercase;
+            border: 1px solid var(--accent); padding: 2px 6px;
+        }
+        .tcard-body { padding: 14px; }
+
+        /* ===== 统计卡：label/value 对 ===== */
+        .stat-label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+        .stat-value { color: var(--accent); font-size: 22px; font-weight: 700; line-height: 1.2; margin-top: 6px; }
+        .stat-value small { color: var(--text-muted); font-size: 11px; }
+        .stat-foot { color: var(--text-muted); font-size: 10px; margin-top: 8px; text-transform: uppercase; }
+
+        /* ===== 栅格 ===== */
+        .grid { display: grid; gap: 24px; }
+        .g4 { grid-template-columns: repeat(4, 1fr); }
+        .g21 { grid-template-columns: 2fr 1fr; }
+        .g2 { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 1200px) { .g4 { grid-template-columns: repeat(2, 1fr); } .g21, .g2 { grid-template-columns: 1fr; } }
+
+        .chart { width: 100%; height: 320px; }
+        .chart-lg { width: 100%; height: 380px; }
+
+        .wordcloud-img { width: 100%; filter: grayscale(1) contrast(1.1); opacity: .85; }
+
+        footer.sticky-footer {
+            background: var(--bg) !important;
+            border-top: 1px solid var(--line);
+        }
+        footer .copyright span { color: var(--text-muted) !important; font-size: 11px; text-transform: uppercase; }
+    </style>
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+    {% include 'sidebar.html' %}
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <nav class="navbar navbar-expand topbar mb-0 static-top"></nav>
+
+            <div class="container-fluid">
+
+                <div class="page-head">
+                    <div class="crumb">RECRUITMENT.OS / NON-DEV / DATA</div>
+                    <h1>数据分析 <span class="accent">//</span> 岗位面板</h1>
+                    <div class="meta">SOURCE: BOSS直聘 · REALTIME SAMPLE · UPDATED 2026-10</div>
+                </div>
+
+                <!-- 统计行 -->
+                <div class="grid g4">
+                    <div class="tcard"><div class="tcard-body">
+                        <div class="stat-label">岗位信息数</div>
+                        <div class="stat-value">{{ num }} <small>条</small></div>
+                        <div class="stat-foot">TOTAL_RECORDS</div>
+                    </div></div>
+                    <div class="tcard"><div class="tcard-body">
+                        <div class="stat-label">行业平均薪资</div>
+                        <div class="stat-value">¥{{ avg }} <small>/月</small></div>
+                        <div class="stat-foot">AVG_SALARY</div>
+                    </div></div>
+                    <div class="tcard"><div class="tcard-body">
+                        <div class="stat-label">行业最低薪资</div>
+                        <div class="stat-value">¥{{ Min }} <small>/月</small></div>
+                        <div class="stat-foot">MIN_SALARY</div>
+                    </div></div>
+                    <div class="tcard"><div class="tcard-body">
+                        <div class="stat-label">行业最高薪资</div>
+                        <div class="stat-value">¥{{ Max }} <small>/月</small></div>
+                        <div class="stat-foot">MAX_SALARY</div>
+                    </div></div>
+                </div>
+
+                <!-- 学历 -->
+                <div class="grid g21">
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">学历 × 薪资</span><span class="lbl">BAR</span></div>
+                        <div class="tcard-body"><div id="chEduSalary" class="chart"></div></div>
+                    </div>
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">学历要求分布</span><span class="lbl">PIE</span></div>
+                        <div class="tcard-body"><div id="chEdu" class="chart"></div></div>
+                    </div>
+                </div>
+
+                <!-- 经验 -->
+                <div class="grid g21">
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">经验 × 薪资</span><span class="lbl">BAR</span></div>
+                        <div class="tcard-body"><div id="chExpSalary" class="chart"></div></div>
+                    </div>
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">经验要求分布</span><span class="lbl">PIE</span></div>
+                        <div class="tcard-body"><div id="chExp" class="chart"></div></div>
+                    </div>
+                </div>
+
+                <!-- 雷达 + 词云 -->
+                <div class="grid g2">
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">岗位属性雷达</span><span class="lbl">RADAR</span></div>
+                        <div class="tcard-body"><div id="chRadar" class="chart-lg"></div></div>
+                    </div>
+                    <div class="tcard">
+                        <div class="tcard-head"><span class="t">热门技术词云</span><span class="lbl">CLOUD</span></div>
+                        <div class="tcard-body">
+                            <img src="/static/img/cloud/Python技术热词.jpg" class="wordcloud-img" alt="wordcloud">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="sticky-footer">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>RECRUITMENT.OS © 招聘数据可视化分析平台</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="/static/vendor/jquery/jquery.min.js"></script>
+<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/sb-admin-2.min.js"></script>
+<script>
+/* ===== 终端风 ECharts 主题 ===== */
+const T = {
+    text: '#b0b0b0', strong: '#fafafa', muted: '#7a7a7a',
+    line: '#3d3d3d', split: '#2b2b2b', accent: '#ffa800',
+    grays: ['#fafafa', '#cfcfcf', '#9c9c9c', '#858585', '#666666', '#4d4d4d']
+};
+const FONT = { fontFamily: 'Consolas, "Courier New", monospace', size: 11 };
+
+function baseOption() {
+    return {
+        backgroundColor: 'transparent',
+        textStyle: { color: T.text, fontFamily: FONT.fontFamily, fontSize: FONT.size },
+        tooltip: {
+            backgroundColor: '#0a0a0a', borderColor: T.line, borderWidth: 1,
+            textStyle: { color: T.strong, fontSize: 11, fontFamily: FONT.fontFamily }
+        },
+        legend: { textStyle: { color: T.muted, fontSize: 11 }, itemWidth: 12, itemHeight: 12 }
+    };
+}
+function pieOption() {
+    const o = baseOption();
+    o.color = [T.accent, '#cfcfcf', '#9c9c9c', '#858585', '#666666', '#4d4d4d', '#3d3d3d', '#2b2b2b'];
+    o.series = [{
+        type: 'pie', radius: ['42%', '72%'],
+        label: { color: T.text, fontSize: 11 },
+        labelLine: { lineStyle: { color: T.line } },
+        itemStyle: { borderColor: '#141414', borderWidth: 2 },
+        emphasis: { itemStyle: { shadowBlur: 0 }, label: { color: T.strong } }
+    }];
+    return o;
+}
+function barOption() {
+    const o = baseOption();
+    o.grid = { left: 60, right: 20, top: 40, bottom: 30 };
+    o.xAxis = {
+        type: 'category',
+        axisLine: { lineStyle: { color: T.line } }, axisTick: { show: false },
+        axisLabel: { color: T.text, fontSize: 11 }
+    };
+    o.yAxis = {
+        type: 'value', name: '¥/月', nameTextStyle: { color: T.muted },
+        axisLine: { show: false }, axisTick: { show: false },
+        axisLabel: { color: T.muted, fontSize: 11 },
+        splitLine: { lineStyle: { color: T.split } }
+    };
+    o.series = [
+        { name: '最低薪资', type: 'bar', itemStyle: { color: '#4d4d4d' }, barGap: '10%' },
+        { name: '平均薪资', type: 'bar', itemStyle: { color: T.accent } },
+        { name: '最高薪资', type: 'bar', itemStyle: { color: '#cfcfcf' } }
+    ];
+    return o;
+}
+
+function mkChart(id) {
+    const el = document.getElementById(id);
+    const c = echarts.init(el, null, { renderer: 'svg' });
+    window.addEventListener('resize', () => c.resize());
+    return c;
+}
+
+/* 学历要求 PIE */
+(function () {
+    const c = mkChart('chEdu'); c.showLoading();
+    $.get('/dataGetEdu', function (data) {
+        const j = JSON.parse(data);
+        const o = pieOption();
+        o.series[0].data = j.name.map((n, i) => ({ name: n, value: j.value[i] }));
+        c.hideLoading(); c.setOption(o);
+    });
+})();
+
+/* 经验要求 PIE */
+(function () {
+    const c = mkChart('chExp'); c.showLoading();
+    $.get('/dataGetExp', function (data) {
+        const j = JSON.parse(data);
+        const o = pieOption();
+        o.series[0].data = j.name.map((n, i) => ({ name: n, value: j.value[i] }));
+        c.hideLoading(); c.setOption(o);
+    });
+})();
+
+/* 学历×薪资 BAR */
+(function () {
+    const c = mkChart('chEduSalary'); c.showLoading();
+    $.get('/dataGetEduForSalary', function (data) {
+        const j = JSON.parse(data);
+        const o = barOption();
+        o.xAxis.data = j.name;
+        o.series[0].data = j.value.map(v => v[0]);
+        o.series[1].data = j.value.map(v => v[1]);
+        o.series[2].data = j.value.map(v => v[2]);
+        c.hideLoading(); c.setOption(o);
+    });
+})();
+
+/* 经验×薪资 BAR */
+(function () {
+    const c = mkChart('chExpSalary'); c.showLoading();
+    $.get('/dataGetExpForSalary', function (data) {
+        const j = JSON.parse(data);
+        const o = barOption();
+        o.xAxis.data = j.name;
+        o.series[0].data = j.value.map(v => v[0]);
+        o.series[1].data = j.value.map(v => v[1]);
+        o.series[2].data = j.value.map(v => v[2]);
+        c.hideLoading(); c.setOption(o);
+    });
+})();
+
+/* 岗位属性 RADAR */
+(function () {
+    const c = mkChart('chRadar'); c.showLoading();
+    $.get('/dataRadar', function (data) {
+        const j = JSON.parse(data);
+        let raw = j.value.slice();
+        if (raw[5] > 5) raw[5] = 4 + Math.log10(raw[5] / 5);
+        if (raw[1] > 2) raw[1] = 2;
+        if (raw[2] > 2) raw[2] = 2;
+        const o = baseOption();
+        o.radar = {
+            shape: 'polygon',
+            indicator: [
+                { name: '最低薪资', max: 10 }, { name: '最高薪资', max: 2 },
+                { name: '平均薪资', max: 2 }, { name: '经验要求', max: 1 },
+                { name: '学历要求', max: 1 }, { name: '岗位数量', max: 6 }
+            ],
+            axisName: { color: T.text, fontSize: 11 },
+            splitLine: { lineStyle: { color: T.split } },
+            splitArea: { show: false },
+            axisLine: { lineStyle: { color: T.line } }
+        };
+        o.series = [{
+            name: '数据分析指标', type: 'radar',
+            data: [{ value: raw, name: '数据分析指标' }],
+            lineStyle: { color: T.accent, width: 2 },
+            itemStyle: { color: T.accent },
+            areaStyle: { color: 'rgba(255,168,0,0.15)' },
+            symbolSize: 4
+        }];
+        c.hideLoading(); c.setOption(o);
+    });
+})();
+</script>
+</body>
+</html>

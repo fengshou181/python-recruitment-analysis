@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>招聘数据可视化分析平台 - Unity3D/UE</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <!-- 使用本地Nunito字体替代在线加载 -->
+    <link href="/static/css/nunito.css" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/js/term-echarts.js?v=1"></script>
+    <!-- 使用本地jQuery-resize替代在线加载 -->
+    <script src="/static/js/jquery.ba-resize.min.js"></script>
+
+    <link href="/static/css/terminal.css?v=2" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- End of Sidebar -->
+        {% include 'sidebar.html' %}
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+{#                    <!-- Topbar Search -->#}
+{#                    <form#}
+{#                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">#}
+{#                        <div class="input-group">#}
+{#                            <input type="text" class="form-control bg-light border-0 small" placeholder="搜索关键字..."#}
+{#                                aria-label="Search" aria-describedby="basic-addon2">#}
+{#                            <div class="input-group-append">#}
+{#                                <button class="btn btn-primary" type="button">#}
+{#                                    <i class="fas fa-search fa-sm"></i>#}
+{#                                </button>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                        <!-- 用户按钮 -->#}
+{#                        <li class="nav-item dropdown no-arrow">#}
+{#                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"#}
+{#                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">管理员</span>#}
+{#                                <img class="img-profile rounded-circle"#}
+{#                                    src="/static/img/undraw_profile.svg">#}
+{#                            </a>#}
+{#                            <!-- Dropdown - User Information -->#}
+{#                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"#}
+{#                                aria-labelledby="userDropdown">#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    个人#}
+{#                                </a>#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    管理#}
+{#                                </a>#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    日志#}
+{#                                </a>#}
+{#                                <div class="dropdown-divider"></div>#}
+{#                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">#}
+{#                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    注销#}
+{#                                </a>#}
+{#                            </div>#}
+{#                        </li>#}
+
+
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-4 text-gray-800">Unity3D/UE</h1>
+                    <!--顶栏-->
+                    <div class="row">
+
+                        <!-- Earnings (Monthly) Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                岗位信息数</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ num }}个</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-table fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Earnings (Monthly) Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                行业平均薪资</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">¥{{ avg }}/月</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Earnings (Monthly) Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">行业最低薪资
+                                            </div>
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">¥{{ Min }}/月</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pending Requests Card Example -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                行业最高薪资</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">¥{{ Max }}/月</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--图表-->
+                    <div class="row">
+
+                        <!--学历薪资图 -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE学历与薪资</h6>
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <div class="javaGetEduForSalary">
+
+                                        <div id="u3dUeGetEduForSalary" style="display: block; width: 1037px; height: 320px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 学历要求图 -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE学历要求</h6>
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                     <div id="u3dUeGetEdu" style="display: block; width: 500px; height: 320px;"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 经验要求图 -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE经验要求</h6>
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                     <div id="u3dUeGetExp" style="display: block; width: 500px; height: 320px;"></div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 经验薪资图 -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header - Dropdown -->
+                                <div
+                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE经验与薪资</h6>
+
+                                </div>
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <div class="chart-area">
+                                        <div id="u3dUeGetExpForSalary" style="display: block; width: 1037px; height: 320px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+
+                        <!-- Content Column -->
+                        <div class="col-lg-6 mb-4">
+
+                            <!-- Project Card Example -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE属性图</h6>
+                                </div>
+                                <div class="card-body">
+                                     <div class="table-responsive">
+                                            <div id="u3dUeRadar" style="display: block; width: 750px; height: 400px;"></div>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                         <!-- 热门岗位-->
+                        <div class="col-lg-6 mb-4">
+                            <!-- Illustrations -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Unity3D/UE热门技术</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <img src="/static/img/cloud/u3dUe技术热词.jpg" class="img-responsive center-block" alt="ERROR">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; 招聘数据可视化分析平台</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/js/sb-admin-2.min.js"></script>
+
+    <script src="/static/js/demo/chart-area-demo.js"></script>
+    <script src="/static/js/echarts/u3dUe/u3dUeGetEduForSalary.js"></script>
+    <script src="/static/js/echarts/u3dUe/u3dUeGetEdu.js"></script>
+    <script src="/static/js/echarts/u3dUe/u3dUeGetExp.js"></script>
+    <script src="/static/js/echarts/u3dUe/u3dUeGetExpForSalary.js"></script>
+    <script src="/static/js/echarts/u3dUe/u3dUeRadar.js"></script>
+</body>
+
+</html>

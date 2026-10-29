@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>招聘数据可视化分析平台 - 薪资推测</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <!-- 使用本地Nunito字体替代在线加载 -->
+    <link href="/static/css/nunito.css" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    
+    <!-- jQuery必须在Distpicker之前加载 -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/js/term-echarts.js?v=1"></script>
+    <!-- 使用本地jQuery-resize替代在线加载 -->
+    <script src="/static/js/jquery.ba-resize.min.js"></script>
+    
+    <!-- 引入Distpicker省市区联动选择器 -->
+    <script src="/static/vendor/dist/distpicker.min.js"></script>
+
+    <style>
+        .form-label {
+            font-weight: 600;
+            color: #4e73df;
+            margin-bottom: 0.5rem;
+        }
+        .speculate-btn {
+            background: linear-gradient(to right, #4e73df, #36b9cc);
+            border: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .speculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+        .speculate-panel {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .speculate-header {
+            background: linear-gradient(45deg, #4e73df, #1cc88a);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .form-select {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + 0.75rem + 2px);
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #6e707e;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+    </style>
+
+    <link href="/static/css/terminal.css?v=2" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        {% include 'sidebar.html' %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+{#                    <!-- Topbar Search -->#}
+{#                    <form#}
+{#                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">#}
+{#                        <div class="input-group">#}
+{#                            <input type="text" class="form-control bg-light border-0 small" placeholder="搜索关键字..."#}
+{#                                aria-label="Search" aria-describedby="basic-addon2">#}
+{#                            <div class="input-group-append">#}
+{#                                <button class="btn btn-primary" type="button">#}
+{#                                    <i class="fas fa-search fa-sm"></i>#}
+{#                                </button>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </form>#}
+{##}
+{#                        <!-- 用户按钮 -->#}
+{#                        <li class="nav-item dropdown no-arrow">#}
+{#                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"#}
+{#                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
+{#                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">管理员</span>#}
+{#                                <img class="img-profile rounded-circle"#}
+{#                                    src="/static/img/undraw_profile.svg">#}
+{#                            </a>#}
+{#                            <!-- Dropdown - User Information -->#}
+{#                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"#}
+{#                                aria-labelledby="userDropdown">#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    个人#}
+{#                                </a>#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    管理#}
+{#                                </a>#}
+{#                                <a class="dropdown-item" href="#">#}
+{#                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    日志#}
+{#                                </a>#}
+{#                                <div class="dropdown-divider"></div>#}
+{#                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">#}
+{#                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>#}
+{#                                    注销#}
+{#                                </a>#}
+{#                            </div>#}
+{#                        </li>#}
+
+
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <h1 class="h3 mb-4 text-gray-800">薪资推测</h1>
+
+                    <div class="row justify-content-center">
+
+                        <div class="col-lg-8 mb-4">
+                            <!-- 薪资推测表单卡片 -->
+                            <div class="card shadow mb-4 speculate-panel">
+                                <div class="speculate-header">
+                                    <h1 class="h4 text-white m-0">薪资推测依据</h1>
+                                    <p class="text-white-50 small mb-0">根据您提供的信息，推测合理薪资范围</p>
+                                </div>
+
+                                <div class="card-body p-5">
+                                    <form id="salary-data" class="user needs-validation" novalidate action="{{ url_for('salary_submit') }}" method="POST">
+                                        
+                                        <!-- 省市区选择 -->
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fas fa-map-marker-alt mr-1"></i> 公司所在地区
+                                            </label>
+                                            <div class="form-row" data-toggle="distpicker" id="distpicker">
+                                                <div class="form-group col-md-4">
+                                                    <select required name="province" id="province" class="form-control" data-province="请选择省份"></select>
+                                                    <div class="invalid-feedback">
+                                                        省份为必填项 (⁎˃ᆺ˂)
+                                                    </div>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <select required name="city" id="city" class="form-control" data-city="请选择城市"></select>
+                                                    <div class="invalid-feedback">
+                                                        城市为必填项 ヾ(✿ﾟ▽ﾟ)ノ
+                                                    </div>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <select required name="area" id="area" class="form-control" data-district="请选择区县"></select>
+                                                    <div class="invalid-feedback">
+                                                        地区也为必填项 (⋟﹏⋞)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 岗位方向 -->
+                                        <div class="form-group">
+                                            <label for="job" class="form-label">
+                                                <i class="fas fa-laptop-code mr-1"></i> 岗位方向
+                                            </label>
+                                            <select id="job" name="job" class="form-control">
+                                                <option value="Java">Java</option>
+                                                <option value="Python">Python</option>
+                                                <option value="PHP">PHP</option>
+                                                <option value="C/C++">C/C++</option>
+                                                <option value="C#/.NET">C#/.NET</option>
+                                                <option value="Unity3D/UE">Unity3D/UE</option>
+                                                <option value="IOS">IOS</option>
+                                                <option value="Android">Android</option>
+                                                <option value="web前端">web前端</option>
+                                                <option value="算法">算法</option>
+                                                <option value="测试">测试</option>
+                                                <option value="运维">运维</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 公司规模和学历 -->
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="scale" class="form-label">
+                                                    <i class="fas fa-building mr-1"></i> 公司规模
+                                                </label>
+                                                <select id="scale" name="scale" class="form-control">
+                                                    <option value="0-20人">0-20人</option>
+                                                    <option value="20-99人">20-99人</option>
+                                                    <option value="100-499人">100-499人</option>
+                                                    <option value="500-999人">500-999人</option>
+                                                    <option value="1000-9999人">1000-9999人</option>
+                                                    <option value="10000人以上">10000人以上</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="education" class="form-label">
+                                                    <i class="fas fa-graduation-cap mr-1"></i> 学历
+                                                </label>
+                                                <select id="education" name="education" class="form-control">
+                                                    <option value="不限">不限</option>
+                                                    <option value="中技">中技</option>
+                                                    <option value="大专">大专</option>
+                                                    <option value="本科">本科</option>
+                                                    <option value="硕士">硕士</option>
+                                                    <option value="博士">博士</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 工作经验和岗位名称 -->
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="experience" class="form-label">
+                                                    <i class="fas fa-briefcase mr-1"></i> 工作经验
+                                                </label>
+                                                <select id="experience" name="experience" class="form-control">
+                                                    <option value="在校/应届">在校/应届</option>
+                                                    <option value="1年以内">1年以内</option>
+                                                    <option value="1-3年">1-3年</option>
+                                                    <option value="3-5年">3-5年</option>
+                                                    <option value="5-10年">5-10年</option>
+                                                    <option value="10年以上">10年以上</option>
+                                                    <option value="经验不限">经验不限</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="name" class="form-label">
+                                                    <i class="fas fa-id-badge mr-1"></i> 岗位名称
+                                                </label>
+                                                <input required id="name" type="text" name="name" class="form-control" placeholder="岗位具体名称">
+                                                <div class="invalid-feedback">
+                                                    具体名称很关键
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 技能 -->
+                                        <div class="form-group">
+                                            <label for="skill" class="form-label">
+                                                <i class="fas fa-tools mr-1"></i> 职业技能
+                                            </label>
+                                            <input required id="skill" type="text" name="skill" class="form-control" placeholder="技能(最多五项 空格隔开)">
+                                            <small class="form-text text-muted">例如：Java Spring MySQL Redis</small>
+                                            <div class="invalid-feedback">
+                                                具体职业技能推测更准确
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group mt-4">
+                                            <button id="salary-submit" type="submit" class="btn btn-primary btn-user btn-block speculate-btn py-3">
+                                                <i class="fas fa-calculator mr-2"></i> 开始推测
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; 招聘数据可视化分析平台 </span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/js/sb-admin-2.min.js"></script>
+
+    <script src="/static/js/demo/chart-area-demo.js"></script>
+    <!--表单验证脚本-->
+    <script>
+        $(document).ready(() => {
+            // 初始化省市区选择器
+            $('#distpicker').distpicker({
+                autoSelect: true,
+                valueType: 'name' // 确保使用名称而非编码
+            });
+            
+            // 表单验证
+            (function() {
+                'use strict';
+                window.addEventListener('load', function() {
+                    // 获取表单元素
+                    var forms = document.getElementsByClassName('needs-validation');
+                    // 表单验证
+                    var validation = Array.prototype.filter.call(forms, function(form) {
+                        form.addEventListener('submit', function(event) {
+                            if (form.checkValidity() === false) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            form.classList.add('was-validated');
+                        }, false);
+                    });
+                }, false);
+            })();
+            
+            // 默认选择北京
+            $('#distpicker').distpicker('destroy').distpicker({
+                province: '北京',
+                city: '北京市',
+                district: '朝阳区'
+            });
+        });
+    </script>
+</body>
+
+</html>

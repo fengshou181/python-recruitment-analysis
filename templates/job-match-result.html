@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>招聘数据可视化分析平台 - 岗位匹配结果</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <!-- 使用本地Nunito字体替代在线加载 -->
+    <link href="/static/css/nunito.css" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    
+    <!-- jQuery必须在其他脚本之前加载 -->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    
+    <script src="/static/js/echarts.min.js"></script>
+    <script src="/static/js/term-echarts.js?v=1"></script>
+    <!-- 使用本地jQuery-resize替代在线加载 -->
+    <script src="/static/js/jquery.ba-resize.min.js"></script>
+    
+    <style>
+        .match-score {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            background: linear-gradient(45deg, #4e73df, #36b9cc);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .match-score span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .job-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .job-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #4e73df;
+        }
+        
+        .skill-badge {
+            background-color: #f8f9fc;
+            color: #5a5c69;
+            border: 1px solid #e3e6f0;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 0.7rem;
+        }
+        
+        .job-title {
+            font-weight: 600;
+            color: #2e59d9;
+        }
+        
+        .company-name {
+            font-size: 0.9rem;
+        }
+        
+        .salary-range {
+            font-weight: 600;
+            color: #1cc88a;
+        }
+        
+        .filter-panel {
+            background-color: #f8f9fc;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .sort-btn {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn:hover,
+        .sort-btn.active {
+            background-color: #4e73df;
+            color: white;
+        }
+        
+        .match-header {
+            background: linear-gradient(45deg, #4e73df, #1cc88a);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        /* 进度条样式 */
+        .progress-sm {
+            height: 6px;
+        }
+        
+        /* 分页按钮样式 */
+        .pagination .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+    </style>
+
+    <link href="/static/css/terminal.css?v=2" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        {% include 'sidebar.html' %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">岗位匹配结果</h1>
+                        <a href="{{ url_for('job_speculate') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                            <i class="fas fa-undo fa-sm text-white-50"></i> 返回重新匹配
+                        </a>
+                    </div>
+
+                    <!-- 匹配结果摘要 -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="match-header">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="text-white mb-3">为您找到 {{ jobs|length if jobs else 0 }} 个匹配的岗位</h4>
+                                        <p class="text-white-50 mb-0">
+                                            <strong>搜索条件:</strong> {{ job_input.name }} / {{ job_input.province }} {{ job_input.city }} / {{ job_input.education }}
+                                            {% if job_input.salary %} / 薪资 ≥ {{ job_input.salary }}元/月{% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-4 text-center text-md-right">
+                                                <div class="text-white-50 small mb-1">匹配度最高</div>
+                                                <h4 class="text-white mb-0">{{ highest_match|default('92') }}%</h4>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <div class="text-white-50 small mb-1">平均薪资</div>
+                                                <h4 class="text-white mb-0">{{ avg_salary|default('18K') }}</h4>
+                                            </div>
+                                            <div class="col-md-4 text-center text-md-left">
+                                                <div class="text-white-50 small mb-1">技能匹配</div>
+                                                <h4 class="text-white mb-0">{{ avg_skill_match|default('85') }}%</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- 匹配岗位列表 -->
+                        <div class="col-lg-8">
+                            <!-- 筛选和排序 -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">匹配岗位</h6>
+                                    <div>
+                                        <span class="sort-btn active" data-sort="match">匹配度排序</span>
+                                        <span class="sort-btn ml-2" data-sort="salary">薪资排序</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% if jobs %}
+                                        {% for job in jobs %}
+                                        <div class="job-card card shadow-sm mb-3">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <h5 class="job-title">{{ job.name }}</h5>
+                                                        <p class="company-name mb-2">
+                                                            <i class="fas fa-building text-gray-400 mr-1"></i> {{ job.company }}
+                                                            <span class="badge badge-light ml-2">{{ job.experience }}</span>
+                                                        </p>
+                                                        <p class="mb-2">
+                                                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> {{ job.city }}
+                                                            <span class="ml-3">
+                                                                <i class="fas fa-graduation-cap text-gray-400 mr-1"></i> {{ job.education }}
+                                                            </span>
+                                                        </p>
+                                                        <div class="mb-2">
+                                                            {% for skill in job.skills_required %}
+                                                            <span class="badge badge-pill skill-badge">{{ skill }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4 text-right">
+                                                        <div class="d-flex flex-column align-items-end">
+                                                            <div class="salary-range mb-2">{{ job.min_salary }}-{{ job.max_salary }}元/月</div>
+                                                            <div class="match-score">
+                                                                <span>{{ (job.match_score * 100)|int }}%</span>
+                                                            </div>
+                                                            <div class="mt-3">
+                                                                <button class="btn btn-sm btn-outline-primary view-details" 
+                                                                                data-name="{{ job.name }}" 
+                                                                                data-company="{{ job.company }}" 
+                                                                                data-city="{{ job.city }}" 
+                                                                                data-area="{{ job.area }}" 
+                                                                                data-min-salary="{{ job.min_salary }}" 
+                                                                                data-max-salary="{{ job.max_salary }}" 
+                                                                                data-education="{{ job.education }}" 
+                                                                                data-experience="{{ job.experience }}" 
+                                                                                data-detail="{{ job.detail }}" 
+                                                                                data-label="{{ job.label }}" 
+                                                                                data-welfare="{{ job.welfare }}" 
+                                                                                data-match-score="{{ (job.match_score * 100)|int }}"
+                                                                                data-skills="{{ job.skills_required|join(',') }}">
+                                                                            查看详情
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        
+                                        <!-- 分页 -->
+                                        <div class="mt-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="page-size-selector">
+                                                    <span class="small mr-2">每页显示:</span>
+                                                    <select id="page-size-select" class="custom-select custom-select-sm" style="width: auto;">
+                                                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                                                        <option value="20" {% if page_size == 20 %}selected{% endif %}>20</option>
+                                                        <option value="30" {% if page_size == 30 %}selected{% endif %}>30</option>
+                                                    </select>
+                                                </div>
+                                                <div class="small text-muted">
+                                                    共 {{ total_jobs }} 个岗位，第 {{ page }}/{{ total_pages }} 页
+                                                </div>
+                                            </div>
+                                            <nav aria-label="Page navigation">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                                                        <a class="page-link" href="{{ url_for('job_submit', page=page-1, page_size=page_size, from_results='true', name=job_input.name, province=job_input.province, city=job_input.city, skill=job_input.skills|join(' '), education=job_input.education, experience=job_input.experience, salary=job_input.salary, scale=job_input.scale, priority=job_input.priority) }}" tabindex="-1">上一页</a>
+                                                    </li>
+                                                    
+                                                    {% set start_page = [page - 2, 1]|max %}
+                                                    {% set end_page = [start_page + 4, total_pages + 1]|min %}
+                                                    {% set start_page = [end_page - 5, 1]|max %}
+                                                    
+                                                    {% for p in range(start_page, end_page) %}
+                                                    <li class="page-item {% if p == page %}active{% endif %}">
+                                                        <a class="page-link" href="{{ url_for('job_submit', page=p, page_size=page_size, from_results='true', name=job_input.name, province=job_input.province, city=job_input.city, skill=job_input.skills|join(' '), education=job_input.education, experience=job_input.experience, salary=job_input.salary, scale=job_input.scale, priority=job_input.priority) }}">{{ p }}</a>
+                                                    </li>
+                                                    {% endfor %}
+                                                    
+                                                    <li class="page-item {% if not has_next %}disabled{% endif %}">
+                                                        <a class="page-link" href="{{ url_for('job_submit', page=page+1, page_size=page_size, from_results='true', name=job_input.name, province=job_input.province, city=job_input.city, skill=job_input.skills|join(' '), education=job_input.education, experience=job_input.experience, salary=job_input.salary, scale=job_input.scale, priority=job_input.priority) }}">下一页</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <i class="fas fa-search fa-3x text-gray-300 mb-3"></i>
+                                            <p>抱歉，没有找到符合条件的岗位</p>
+                                            <a href="{{ url_for('job_speculate') }}" class="btn btn-primary mt-3">
+                                                <i class="fas fa-undo mr-1"></i> 返回重新匹配
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 匹配分析和筛选 -->
+                        <div class="col-lg-4">
+                            <!-- 匹配分析 -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">匹配分析</h6>
+                                </div>
+                                <div class="card-body">
+                                    <!-- 技能匹配度分析 -->
+                                    <h6 class="small font-weight-bold">技能匹配度 <span class="float-right">{{ skill_match|default('75') }}%</span></h6>
+                                    <div class="progress mb-4">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ skill_match|default('75') }}%" 
+                                            aria-valuenow="{{ skill_match|default('75') }}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 地区匹配度分析 -->
+                                    <h6 class="small font-weight-bold">地区匹配度 <span class="float-right">{{ area_match|default('100') }}%</span></h6>
+                                    <div class="progress mb-4">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ area_match|default('100') }}%" 
+                                            aria-valuenow="{{ area_match|default('100') }}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 岗位方向匹配度分析 -->
+                                    <h6 class="small font-weight-bold">岗位方向匹配度 <span class="float-right">{{ job_match|default('90') }}%</span></h6>
+                                    <div class="progress mb-4">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ job_match|default('90') }}%" 
+                                            aria-valuenow="{{ job_match|default('90') }}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 学历匹配度分析 -->
+                                    <h6 class="small font-weight-bold">学历匹配度 <span class="float-right">{{ edu_match|default('85') }}%</span></h6>
+                                    <div class="progress mb-4">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ edu_match|default('85') }}%" 
+                                            aria-valuenow="{{ edu_match|default('85') }}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <!-- 匹配技能分析 -->
+                                    <div class="mt-3">
+                                        <h6 class="font-weight-bold small mb-2">您的技能匹配情况</h6>
+                                        <div class="row">
+                                            {% for skill in skills|default(['Java', 'Spring', 'MySQL', 'Redis', 'Docker']) %}
+                                            <div class="col-6 mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-check-circle text-success mr-1"></i>
+                                                    <span>{{ skill }}</span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if missing_skills|default(['Linux', 'Kubernetes']) %}
+                                        <div class="mt-2">
+                                            <h6 class="font-weight-bold small text-muted mb-2">建议提升的技能</h6>
+                                            <div class="row">
+                                                {% for skill in missing_skills|default(['Linux', 'Kubernetes']) %}
+                                                <div class="col-6 mb-1">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-plus-circle text-info mr-1"></i>
+                                                        <span class="text-muted">{{ skill }}</span>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 筛选条件 -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">筛选条件</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="filter-form" action="{{ url_for('job_submit') }}" method="GET">
+                                        <div class="form-group">
+                                            <label for="min_salary" class="small font-weight-bold">薪资范围</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="number" class="form-control form-control-sm" id="min_salary" name="min_salary" placeholder="最低薪资">
+                                                <span class="mx-2">-</span>
+                                                <input type="number" class="form-control form-control-sm" id="max_salary" name="max_salary" placeholder="最高薪资">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="scale" class="small font-weight-bold">公司规模</label>
+                                            <select class="form-control form-control-sm" id="scale" name="scale">
+                                                <option value="">不限</option>
+                                                <option value="初创">初创企业</option>
+                                                <option value="50人以下">50人以下</option>
+                                                <option value="50-100人">50-100人</option>
+                                                <option value="100-500人">100-500人</option>
+                                                <option value="500-1000人">500-1000人</option>
+                                                <option value="1000-5000人">1000-5000人</option>
+                                                <option value="5000人以上">5000人以上</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="experience" class="small font-weight-bold">工作经验</label>
+                                            <select class="form-control form-control-sm" id="experience" name="experience">
+                                                <option value="">不限</option>
+                                                <option value="在校/应届">在校/应届</option>
+                                                <option value="1年以内">1年以内</option>
+                                                <option value="1-3年">1-3年</option>
+                                                <option value="3-5年">3-5年</option>
+                                                <option value="5-10年">5-10年</option>
+                                                <option value="10年以上">10年以上</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="min_match" class="small font-weight-bold">最低匹配度</label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="range" class="form-control-range" id="min_match" name="min_match" min="0" max="100" value="60">
+                                                <span class="ml-2" id="match_value">60%</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 隐藏字段，标记来自结果页面 -->
+                                        <input type="hidden" name="from_results" value="true">
+                                        
+                                        <button type="submit" class="btn btn-primary btn-block btn-sm mt-4">
+                                            <i class="fas fa-filter mr-1"></i> 应用筛选
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; 招聘数据可视化分析平台</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- 岗位详情模态框 -->
+    <div class="modal fade" id="jobDetailModal" tabindex="-1" role="dialog" aria-labelledby="jobDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="jobDetailModalLabel">岗位详情</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5 id="modal-job-title" class="font-weight-bold text-primary mb-2"></h5>
+                            <p id="modal-company" class="mb-1"><i class="fas fa-building mr-2"></i> <span></span></p>
+                            <p id="modal-location" class="mb-1"><i class="fas fa-map-marker-alt mr-2"></i> <span></span></p>
+                            <div id="modal-education-experience" class="d-flex mb-1">
+                                <div class="mr-3"><i class="fas fa-graduation-cap mr-2"></i> <span></span></div>
+                                <div><i class="fas fa-briefcase mr-2"></i> <span></span></div>
+                            </div>
+                            <div id="modal-salary" class="text-success font-weight-bold mt-2"><i class="fas fa-yen-sign mr-2"></i> <span></span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="match-score-container text-center">
+                                <div class="h4 mb-0">匹配度</div>
+                                <div class="display-4 font-weight-bold text-primary" id="modal-match-score"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header py-2">
+                                    <h6 class="m-0 font-weight-bold text-primary">岗位要求</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <p id="modal-job-requirements" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header py-2">
+                                    <h6 class="m-0 font-weight-bold text-primary">岗位描述</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <p id="modal-job-description" class="mb-0"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header py-2">
+                            <h6 class="m-0 font-weight-bold text-primary">技能要求</h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="modal-skills" class="d-flex flex-wrap">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header py-2">
+                            <h6 class="m-0 font-weight-bold text-primary">福利待遇</h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="modal-welfare" class="d-flex flex-wrap">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/js/sb-admin-2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // 排序按钮切换
+            $('.sort-btn').click(function() {
+                $('.sort-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                // 获取排序方式
+                const sortBy = $(this).data('sort');
+                console.log('排序方式:', sortBy);
+                
+                // 构建查询参数
+                const params = new URLSearchParams(window.location.search);
+                params.set('sort_by', sortBy);
+                params.set('from_results', 'true');
+                
+                // 重定向到带排序的URL
+                window.location.href = '{{ url_for("job_submit") }}?' + params.toString();
+            });
+            
+            // 匹配度滑块值实时显示
+            $('#min_match').on('input', function() {
+                $('#match_value').text($(this).val() + '%');
+            });
+            
+            // 每页显示数量变更
+            $('#page-size-select').change(function() {
+                const pageSize = $(this).val();
+                const params = new URLSearchParams(window.location.search);
+                params.set('page_size', pageSize);
+                params.set('page', '1'); // 切换每页显示数量时重置为第1页
+                params.set('from_results', 'true');
+                
+                window.location.href = '{{ url_for("job_submit") }}?' + params.toString();
+            });
+            
+            // 岗位详情模态框
+            $('.view-details').click(function() {
+                // 获取岗位数据
+                const name = $(this).data('name');
+                const company = $(this).data('company');
+                const city = $(this).data('city');
+                const area = $(this).data('area') || '';
+                const minSalary = $(this).data('min-salary');
+                const maxSalary = $(this).data('max-salary');
+                const education = $(this).data('education');
+                const experience = $(this).data('experience');
+                const detail = $(this).data('detail') || '暂无详细描述';
+                const label = $(this).data('label') || '暂无岗位要求';
+                const welfare = $(this).data('welfare') || '';
+                const matchScore = $(this).data('match-score');
+                const skills = ($(this).data('skills') || '').split(',').filter(Boolean);
+                
+                // 更新模态框内容
+                $('#modal-job-title').text(name);
+                $('#modal-company span').text(company);
+                $('#modal-location span').text(city + (area ? ' ' + area : ''));
+                $('#modal-education-experience div:first-child span').text(education);
+                $('#modal-education-experience div:last-child span').text(experience);
+                $('#modal-salary span').text(minSalary + '-' + maxSalary + '元/月');
+                $('#modal-match-score').text(matchScore + '%');
+                $('#modal-job-requirements').text(label);
+                $('#modal-job-description').text(detail);
+                
+                // 清空并添加技能标签
+                const $skills = $('#modal-skills').empty();
+                skills.forEach(function(skill) {
+                    if (skill.trim()) {
+                        $skills.append(
+                            $('<span class="badge badge-pill m-1 py-1 px-2" style="background-color: #f8f9fc; color: #5a5c69; border: 1px solid #e3e6f0;">').text(skill.trim())
+                        );
+                    }
+                });
+                
+                // 清空并添加福利标签
+                const $welfare = $('#modal-welfare').empty();
+                if (welfare) {
+                    welfare.split(' ').forEach(function(item) {
+                        if (item.trim()) {
+                            $welfare.append(
+                                $('<span class="badge badge-pill m-1 py-1 px-2" style="background-color: #e3f2fd; color: #2196f3; border: 1px solid #bbdefb;">').text(item.trim())
+                            );
+                        }
+                    });
+                } else {
+                    $welfare.append('<p class="text-muted mb-0">暂无福利信息</p>');
+                }
+                
+                // 显示模态框
+                $('#jobDetailModal').modal('show');
+            });
+            
+            // 筛选表单提交时添加from_results标记
+            $('#filter-form').submit(function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr('action');
+                
+                // 添加当前页面的查询参数
+                const currentParams = new URLSearchParams(window.location.search);
+                const formData = new FormData(form[0]);
+                
+                // 添加from_results标记和其他必要参数
+                formData.append('from_results', 'true');
+                formData.append('name', '{{ job_input.name }}');
+                formData.append('province', '{{ job_input.province }}');
+                formData.append('city', '{{ job_input.city }}');
+                formData.append('skill', '{{ job_input.skills|join(" ") }}');
+                formData.append('education', '{{ job_input.education }}');
+                formData.append('experience', '{{ job_input.experience }}');
+                formData.append('priority', '{{ job_input.priority }}');
+                
+                // 转换为URLSearchParams
+                const params = new URLSearchParams();
+                for (const [key, value] of formData.entries()) {
+                    params.append(key, value);
+                }
+                
+                // 跳转到筛选结果页面
+                window.location.href = url + '?' + params.toString();
+            });
+        });
+    </script>
+</body>
+
+</html> 

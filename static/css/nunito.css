@@ -1,0 +1,23 @@
+/* Nunito字体样式 - 基本版本，可以根据需要扩展 */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Nunito Regular'), local('Nunito-Regular'),
+       url('/static/fonts/nunito-regular.woff2') format('woff2'),
+       url('/static/fonts/nunito-regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Nunito Bold'), local('Nunito-Bold'),
+       url('/static/fonts/nunito-bold.woff2') format('woff2'),
+       url('/static/fonts/nunito-bold.woff') format('woff');
+}
+
+/* 如果不提供字体文件，可以回退到系统字体 */
+body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+} 
